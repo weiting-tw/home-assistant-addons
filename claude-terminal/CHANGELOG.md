@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.1 - 2026-02-10
+
+### 🚀 Improved
+- **Multi-architecture support**: Fixed ARM architecture compatibility issues.
+- **NPM Installation**: Switched back to NPM for more reliable installation across different CPU architectures (amd64, aarch64, armv7) in Alpine environments.
+- **CI/CD Pipeline**: Added GitHub Actions workflow to build and push multi-arch Docker images to GHCR.
+
 ## 1.6.0 - 2026-01-26
 
 ### 🔄 Changed
