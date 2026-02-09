@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Publish
-        uses: home-assistant/builder@master
+        uses: home-assistant/builder@2024.12.0
         with:
           args: |
             --amd64 \
