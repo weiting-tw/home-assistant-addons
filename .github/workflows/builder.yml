@@ -32,7 +32,6 @@ jobs:
           args: |
             --amd64 \
             --aarch64 \
-            --armv7 \
             --target claude-terminal \
             --image "claude-terminal-{arch}" \
             --docker-hub "ghcr.io/${{ github.repository_owner }}"
