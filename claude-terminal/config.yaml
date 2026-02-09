@@ -1,8 +1,9 @@
 ---
 name: "Claude Terminal"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth and packages"
-version: "1.6.1"
+version: "1.6.2"
 slug: "claude_terminal"
+image: "ghcr.io/weiting-tw/claude-terminal-{arch}"
 init: false
 
 # Supported architectures
