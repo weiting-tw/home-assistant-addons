@@ -1,6 +1,10 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
+# Set npm global path to a predictable location
+ENV NPM_CONFIG_PREFIX=/usr/local/share/npm
+ENV PATH="/usr/local/share/npm/bin:$PATH"
+
 # Install system packages and development tools
 RUN apk add --no-cache \
     bash \
@@ -21,13 +25,12 @@ RUN apk add --no-cache \
     tree \
     yq
 
-# Install Claude Code CLI using NPM
-RUN npm install -g @anthropic-ai/claude-code
+# Install Claude Code CLI using NPM with explicit prefix
+RUN mkdir -p /usr/local/share/npm && \
+    npm install -g @anthropic-ai/claude-code
 
-# Aggressively find and link the binary to standard paths
-RUN CLAUDE_BIN=$(find /usr -name claude -type f -executable | head -n 1) && \
-    ln -sf "$CLAUDE_BIN" /usr/local/bin/claude && \
-    ln -sf "$CLAUDE_BIN" /usr/bin/claude
+# Create symlink for convenience
+RUN ln -sf /usr/local/share/npm/bin/claude /usr/local/bin/claude
 
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config
