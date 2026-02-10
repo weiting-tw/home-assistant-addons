@@ -26,6 +26,7 @@ init_environment() {
 
     # Set XDG and application environment variables
     export HOME="$data_home"
+    export PATH="/usr/local/bin:/usr/bin:/bin:/sbin:/usr/local/sbin:$PATH"
     export XDG_CONFIG_HOME="$config_dir"
     export XDG_CACHE_HOME="$cache_dir"
     export XDG_STATE_HOME="$state_dir"
