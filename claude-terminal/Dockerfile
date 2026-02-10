@@ -21,8 +21,9 @@ RUN apk add --no-cache \
     tree \
     yq
 
-# Install Claude Code CLI using NPM (more reliable for multi-arch)
-RUN npm install -g @anthropic-ai/claude-code
+# Install Claude Code CLI using NPM
+RUN npm install -g @anthropic-ai/claude-code && \
+    ln -sf $(which claude) /usr/local/bin/claude
 
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config
