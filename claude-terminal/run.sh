@@ -56,8 +56,7 @@ migrate_legacy_auth_files() {
     # Check common legacy locations
     local legacy_locations=(
         "/root/.config/anthropic"
-        "/root/.anthropic" 
-        "/config/claude-config"
+        "/root/.anthropic"
         "/tmp/claude-config"
     )
 
@@ -254,7 +253,7 @@ start_web_terminal() {
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
     
     # Run ttyd with keepalive configuration to prevent WebSocket disconnects
-    # See: https://github.com/heytcass/home-assistant-addons/issues/24
+    # See: https://github.com/weiting-tw/home-assistant-addons/issues/24
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \

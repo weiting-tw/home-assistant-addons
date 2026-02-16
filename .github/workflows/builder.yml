@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - master
+    paths:
+      - 'claude-terminal/**'
+      - '.github/workflows/builder.yml'
   workflow_dispatch:
 
 jobs:

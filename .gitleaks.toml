@@ -1,0 +1,9 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "gitleaks config"
+
+[allowlist]
+description = "Known false positives"
+commits = ["bcee959196a979e4c2865b368627722f5333bbfb"]
+paths = ['''DEVELOPMENT\.md''']
