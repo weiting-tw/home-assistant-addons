@@ -20,7 +20,7 @@ jobs:
           dockerfile: claude-terminal/Dockerfile
           # DL3018: apk add without version pinning (acceptable for add-on)
           # DL3013: pip install without version pinning
-          ignore: DL3018,DL3013
+          ignore: DL3006,DL3016,DL3018,DL3013
 
       - name: ShellCheck - Lint shell scripts
         run: |

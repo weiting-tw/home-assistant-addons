@@ -1,0 +1,10 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "gitleaks config"
+
+[[allowlist]]
+description = "WebSocket test example key (not a real secret)"
+paths = ["DEVELOPMENT.md"]
+regexTarget = "match"
+regexes = ['''Sec-WebSocket-Key''']
