@@ -3,8 +3,7 @@
 
 title = "gitleaks config"
 
-[[allowlist]]
-description = "WebSocket test example key (not a real secret)"
-paths = ["DEVELOPMENT.md"]
-regexTarget = "match"
-regexes = ['''Sec-WebSocket-Key''']
+[allowlist]
+description = "Known false positives"
+commits = ["bcee959196a979e4c2865b368627722f5333bbfb"]
+paths = ['''DEVELOPMENT\.md''']
