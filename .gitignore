@@ -33,3 +33,9 @@ dist/
 # Operating System Files
 .DS_Store
 Thumbs.db
+
+# Sensitive files
+config/claude-config/.claude.json
+secrets.yaml
+*.key
+*.pem

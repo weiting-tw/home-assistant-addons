@@ -5,7 +5,7 @@ FROM ${BUILD_FROM}
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm
 ENV PATH="/usr/local/share/npm/bin:$PATH"
 
-# Install system packages and development tools
+# Install system packages (minimized for security)
 RUN apk add --no-cache \
     bash \
     curl \
@@ -14,16 +14,8 @@ RUN apk add --no-cache \
     npm \
     python3 \
     py3-pip \
-    py3-requests \
-    py3-aiohttp \
-    py3-yaml \
-    py3-beautifulsoup4 \
     git \
-    vim \
-    wget \
-    jq \
-    tree \
-    yq
+    jq
 
 # Install Claude Code CLI using NPM with explicit prefix
 RUN mkdir -p /usr/local/share/npm && \
@@ -32,9 +24,7 @@ RUN mkdir -p /usr/local/share/npm && \
 # Create symlink for convenience
 RUN ln -sf /usr/local/share/npm/bin/claude /usr/local/bin/claude
 
-# Create directory for Claude configuration and set working directory
-RUN mkdir -p /config/claude-config
-WORKDIR /config
+WORKDIR /data
 
 # Copy startup script and modular scripts
 COPY run.sh /run.sh

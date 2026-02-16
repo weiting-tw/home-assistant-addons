@@ -40,15 +40,14 @@ schema:
   persistent_pip_packages:
     - str
 
-# Volume mappings for file access
-map:
-  - config:rw    # Access to Home Assistant configuration files
+# Security: no config mount (secrets.yaml not exposed)
+# map: []
 
-# API access for Home Assistant integration
+# API access — minimal privileges
 hassio_api: true
-hassio_role: manager
-homeassistant_api: true
-auth_api: true
+hassio_role: default
+homeassistant_api: false
+auth_api: false
 
 # Service startup configuration
 startup: services
