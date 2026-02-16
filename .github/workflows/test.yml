@@ -1,0 +1,211 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+      - security-refactor
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hadolint - Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: claude-terminal/Dockerfile
+
+      - name: ShellCheck - Lint shell scripts
+        run: |
+          sudo apt-get install -y shellcheck
+          find . -name '*.sh' -type f | xargs shellcheck --severity=warning
+
+      - name: yamllint - Validate YAML files
+        run: |
+          pip install yamllint
+          cat > .yamllint.yml << 'EOF'
+          extends: relaxed
+          rules:
+            line-length:
+              max: 200
+            truthy:
+              check-keys: false
+          EOF
+          yamllint -c .yamllint.yml $(find . -name '*.yaml' -o -name '*.yml' | grep -v node_modules | grep -v .git/)
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks - Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check .gitignore covers sensitive patterns
+        run: |
+          echo "Checking .gitignore for sensitive file patterns..."
+          REQUIRED_PATTERNS=("secrets.yaml" "*.key" "*.pem" ".env")
+          for pattern in "${REQUIRED_PATTERNS[@]}"; do
+            if ! grep -qF "$pattern" .gitignore; then
+              echo "❌ Missing pattern in .gitignore: $pattern"
+              exit 1
+            fi
+          done
+          echo "✅ All required patterns found in .gitignore"
+
+      - name: Validate config.yaml security settings
+        run: |
+          CONFIG="claude-terminal/config.yaml"
+          echo "Validating security settings in $CONFIG..."
+
+          # hassio_role must not be admin or manager
+          ROLE=$(python3 -c "
+          import yaml, sys
+          with open('$CONFIG') as f:
+              c = yaml.safe_load(f)
+          print(c.get('hassio_role', ''))
+          ")
+          if [[ "$ROLE" == "admin" || "$ROLE" == "manager" ]]; then
+            echo "❌ hassio_role is '$ROLE' — must not be admin or manager"
+            exit 1
+          fi
+          echo "✅ hassio_role: $ROLE"
+
+          # No map: config:rw
+          if grep -qE '^\s*map:.*config:rw' "$CONFIG"; then
+            echo "❌ Found 'map: config:rw' — config should not be mounted read-write"
+            exit 1
+          fi
+          echo "✅ No config:rw mapping"
+
+          # homeassistant_api must be false
+          python3 -c "
+          import yaml, sys
+          with open('$CONFIG') as f:
+              c = yaml.safe_load(f)
+          if c.get('homeassistant_api') not in (False, None):
+              print('❌ homeassistant_api should be false')
+              sys.exit(1)
+          print('✅ homeassistant_api: false')
+          "
+
+          # auth_api must be false
+          python3 -c "
+          import yaml, sys
+          with open('$CONFIG') as f:
+              c = yaml.safe_load(f)
+          if c.get('auth_api') not in (False, None):
+              print('❌ auth_api should be false')
+              sys.exit(1)
+          print('✅ auth_api: false')
+          "
+
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (amd64)
+        run: |
+          docker build \
+            --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.21 \
+            -t claude-terminal-test \
+            claude-terminal/
+
+      - name: Smoke test - container starts
+        run: |
+          # Start container in background
+          docker run -d --name ct-test \
+            -e SUPERVISOR_TOKEN=fake \
+            claude-terminal-test sleep 30
+
+          # Wait for container to be running
+          sleep 3
+          STATE=$(docker inspect -f '{{.State.Status}}' ct-test)
+          if [[ "$STATE" != "running" ]]; then
+            echo "❌ Container not running (state: $STATE)"
+            docker logs ct-test
+            exit 1
+          fi
+          echo "✅ Container is running"
+
+      - name: Security - /config not accessible
+        run: |
+          # /config should not exist in container
+          if docker exec ct-test test -d /config; then
+            echo "❌ /config directory exists in container"
+            exit 1
+          fi
+          echo "✅ /config does not exist"
+
+      - name: Verify claude CLI exists
+        run: |
+          docker exec ct-test which claude
+          echo "✅ claude CLI found"
+
+      - name: Verify node is available
+        run: |
+          docker exec ct-test node --version
+          echo "✅ node is available"
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f ct-test || true
+
+  config-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate config.yaml schema
+        run: |
+          python3 << 'PYEOF'
+          import yaml, sys, re
+
+          with open("claude-terminal/config.yaml") as f:
+              config = yaml.safe_load(f)
+
+          errors = []
+
+          # Required top-level keys
+          required = ["name", "description", "version", "slug", "arch", "ingress", "ingress_port"]
+          for key in required:
+              if key not in config:
+                  errors.append(f"Missing required key: {key}")
+
+          # Version format: semver
+          version = config.get("version", "")
+          if not re.match(r'^\d+\.\d+\.\d+$', str(version)):
+              errors.append(f"Invalid version format: {version} (expected semver X.Y.Z)")
+
+          # Arch must include amd64 and aarch64
+          arch = config.get("arch", [])
+          for required_arch in ["amd64", "aarch64"]:
+              if required_arch not in arch:
+                  errors.append(f"Missing required architecture: {required_arch}")
+
+          # slug format
+          slug = config.get("slug", "")
+          if not re.match(r'^[a-z0-9_]+$', str(slug)):
+              errors.append(f"Invalid slug format: {slug}")
+
+          if errors:
+              for e in errors:
+                  print(f"❌ {e}")
+              sys.exit(1)
+
+          print("✅ config.yaml schema validation passed")
+          print(f"   name: {config['name']}")
+          print(f"   version: {config['version']}")
+          print(f"   arch: {config['arch']}")
+          PYEOF
