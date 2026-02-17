@@ -233,6 +233,41 @@ get_claude_launch_command() {
 }
 
 
+# Write Claude Code settings.json with MCP servers
+setup_mcp() {
+    local settings_dir="${XDG_CONFIG_HOME}/claude"
+    local settings_file="${settings_dir}/settings.json"
+    local enable_context7
+    enable_context7=$(bashio::config 'enable_context7' 'true')
+
+    mkdir -p "$settings_dir"
+
+    # Build MCP servers JSON
+    local mcp_servers="{}"
+
+    if [ "$enable_context7" = "true" ]; then
+        bashio::log.info "Enabling Context7 MCP server..."
+        mcp_servers=$(cat <<'EOF'
+{
+  "context7": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@upstash/context7-mcp"]
+  }
+}
+EOF
+)
+    fi
+
+    # Write settings.json
+    cat > "$settings_file" <<EOF
+{
+  "mcpServers": ${mcp_servers}
+}
+EOF
+    bashio::log.info "Claude Code settings written to ${settings_file}"
+}
+
 # Write CLAUDE.md from config system_prompt
 setup_claude_md() {
     local claude_md="/data/CLAUDE.md"
@@ -298,6 +333,7 @@ main() {
     install_tools
     setup_session_picker
     install_persistent_packages
+    setup_mcp
     setup_claude_md
     start_web_terminal
 }

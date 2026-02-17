@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.11.0 - 2026-02-17
+
+### 🆕 Features
+- **Context7 MCP support** — New `enable_context7` option (default: true); provides Claude with up-to-date library documentation via MCP
+- No API key required for Context7 — runs via `npx @upstash/context7-mcp` locally
+- MCP config written to `/data/.config/claude/settings.json` at startup
+
+## 1.10.2 - 2026-02-17
+
+### 🐛 Fixes
+- Remove Home Assistant context from default system prompt (caused Claude to query HA API)
+
+## 1.10.1 - 2026-02-17
+
+### 🆕 Features
+- Quick-key bar: Y/N/1-5/Enter/Esc/^C buttons for mobile option selection
+
 ## 1.10.0 - 2026-02-17
 
 ### 🆕 Features
