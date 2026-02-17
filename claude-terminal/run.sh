@@ -244,7 +244,7 @@ setup_claude_md() {
 
     # Default if empty
     if [ -z "$prompt" ] || [ "$prompt" = "null" ]; then
-        prompt="你是一個運行在 Home Assistant 的 AI 助理。請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
+        prompt="請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
     fi
 
     bashio::log.info "Writing CLAUDE.md with system prompt..."

@@ -1,7 +1,7 @@
 ---
 name: "Claude Terminal"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth and packages"
-version: "1.10.1"
+version: "1.10.2"
 slug: "claude_terminal"
 image: "ghcr.io/weiting-tw/claude-terminal-{arch}"
 init: false
@@ -31,7 +31,7 @@ ports_description:
 # Add-on configuration options
 options:
   auto_launch_claude: true
-  system_prompt: "你是一個運行在 Home Assistant 的 AI 助理。請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
+  system_prompt: "請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
   persistent_apk_packages: []
   persistent_pip_packages: []
 schema:
