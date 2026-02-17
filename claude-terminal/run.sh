@@ -279,7 +279,7 @@ setup_claude_md() {
 
     # Default if empty
     if [ -z "$prompt" ] || [ "$prompt" = "null" ]; then
-        prompt="請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
+        prompt="你正在透過 Home Assistant 的 terminal add-on 運行。請永遠使用繁體中文回應，除非使用者明確要求其他語言。不要主動查詢 Home Assistant API 或執行系統指令，除非使用者明確要求。\n\n你有 Context7 MCP 工具可用。當需要查詢 library、框架或 API 的最新文件時，請優先使用 context7 工具取得準確資訊，而不是依賴訓練資料。"
     fi
 
     bashio::log.info "Writing CLAUDE.md with system prompt..."
