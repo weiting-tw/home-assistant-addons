@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.8.0 - 2026-02-17
+
+### ⚠️ Breaking Changes
+- **Removed `/config` mount** — `secrets.yaml` and other HA config files are no longer accessible from within the container
+- **WORKDIR changed** from `/config` to `/data`
+- **Reduced `hassio_role`** from `manager` to `default`
+- **Disabled `homeassistant_api`** and `auth_api`
+
+### 🔒 Security
+- Removed config directory mount (`map: config:rw`) to prevent exposure of `secrets.yaml`
+- Reduced container privileges
+- Removed unnecessary system packages (vim, wget, tree, yq, py3-requests, py3-aiohttp, py3-yaml, py3-beautifulsoup4)
+- Added `.gitignore` rules for sensitive files
+- Deleted committed `.claude.json` containing user data
+- Added `.gitleaks.toml` for secret scanning
+
+### 🧪 CI/CD
+- Added test workflow: lint, security-scan, build-test, config-validation
+- Updated `builder.yml` with path filters
+- Removed `claude-code-review.yml`
+
+### 📝 Documentation
+- Updated maintainer info and repository URLs
+- Rewrote `CLAUDE.md` with security-first guidelines
+- Updated `README.md` with security improvements section
+
 ## 1.6.1 - 2026-02-10
 
 ### 🚀 Improved
