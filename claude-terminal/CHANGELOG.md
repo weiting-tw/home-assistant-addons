@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.0 - 2026-02-17
+
+### 🆕 Features
+- **System prompt support** — New `system_prompt` config option; written to `/data/CLAUDE.md` at startup so Claude always follows it
+- **Default language: Traditional Chinese** — Default prompt instructs Claude to respond in 繁體中文, fixing the issue where resuming a conversation with Japanese content caused Claude to switch to Japanese
+
+### 🔧 Changes
+- `setup_claude_md()` function in run.sh writes CLAUDE.md from config on each startup
+- Config schema adds `system_prompt: str?` optional field
+
 ## 1.9.0 - 2026-02-17
 
 ### 🆕 Features

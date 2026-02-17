@@ -233,6 +233,29 @@ get_claude_launch_command() {
 }
 
 
+# Write CLAUDE.md from config system_prompt
+setup_claude_md() {
+    local claude_md="/data/CLAUDE.md"
+    local prompt=""
+
+    if bashio::config.has_value 'system_prompt'; then
+        prompt=$(bashio::config 'system_prompt')
+    fi
+
+    # Default if empty
+    if [ -z "$prompt" ] || [ "$prompt" = "null" ]; then
+        prompt="你是一個運行在 Home Assistant 的 AI 助理。請永遠使用繁體中文回應，除非使用者明確要求其他語言。"
+    fi
+
+    bashio::log.info "Writing CLAUDE.md with system prompt..."
+    cat > "$claude_md" <<EOF
+# System Instructions
+
+${prompt}
+EOF
+    bashio::log.info "CLAUDE.md written to ${claude_md}"
+}
+
 # Start web terminal with button toolbar + tmux persistence
 start_web_terminal() {
     local port=7681
@@ -275,6 +298,7 @@ main() {
     install_tools
     setup_session_picker
     install_persistent_packages
+    setup_claude_md
     start_web_terminal
 }
 
