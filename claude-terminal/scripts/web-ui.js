@@ -157,6 +157,8 @@ const HTML = `<!DOCTYPE html>
     <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
   </div>
   <iframe id="term" class="terminal-frame" src="ttyd/"></iframe>
+  <!-- Fallback: if iframe fails, show direct link -->
+  <noscript><p style="padding:20px">JavaScript required. <a href="ttyd/">Open terminal directly</a></p></noscript>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -268,7 +270,7 @@ const server = http.createServer((req, res) => {
 
   // Proxy ttyd requests
   if (req.url.startsWith('/ttyd/')) {
-    const ttydUrl = `http://127.0.0.1:${TTYD_PORT}${req.url.replace('/ttyd', '')}`;
+    const ttydUrl = `http://127.0.0.1:${TTYD_PORT}${req.url}`;
     
     // Handle WebSocket upgrade separately (handled below)
     const proxyReq = http.request(ttydUrl, {
@@ -309,7 +311,7 @@ server.on('upgrade', (req, socket, head) => {
 
   const net = require('net');
   const ttydSocket = net.connect(TTYD_PORT, '127.0.0.1', () => {
-    const path = req.url.replace('/ttyd', '') || '/';
+    const path = req.url;
     const headers = Object.entries(req.headers)
       .map(([k, v]) => `${k}: ${v}`)
       .join('\r\n');
@@ -340,6 +342,7 @@ const ttyd = spawn('ttyd', [
   '--interface', '127.0.0.1',
   '--writable',
   '--ping-interval', '30',
+  '--base-path', '/ttyd',
   'tmux', 'attach-session', '-t', TMUX_SESSION,
 ], { stdio: 'inherit' });
 
