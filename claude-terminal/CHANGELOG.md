@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.9.0 - 2026-02-17
+
+### 🆕 Features
+- **Session persistence with tmux** — Reconnecting to the terminal resumes your previous Claude session instead of starting a new one
+- **Mobile-friendly session picker** — Single-key controls (r=resume, n=new, l=list, s=shell, q=quit), no need to type numbers + Enter
+- **Auto-resume on reconnect** — When a tmux session exists, connecting automatically attaches to it (no menu needed)
+- **Enter key = Resume** — Just press Enter to quickly resume the last conversation
+
+### 🔧 Changes
+- Added `tmux` to container packages
+- ttyd now connects through tmux for persistent sessions
+- Session picker redesigned with simpler key bindings
+- Claude exits return to menu instead of closing the terminal
+
 ## 1.8.0 - 2026-02-17
 
 ### ⚠️ Breaking Changes

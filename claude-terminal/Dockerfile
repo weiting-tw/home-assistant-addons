@@ -15,7 +15,8 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     git \
-    jq
+    jq \
+    tmux
 
 # Install Claude Code CLI using NPM with explicit prefix
 RUN mkdir -p /usr/local/share/npm && \
