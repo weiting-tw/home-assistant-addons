@@ -115,6 +115,46 @@ const HTML = `<!DOCTYPE html>
     margin-right: 6px;
   }
 
+  .quickkeys {
+    display: flex;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #1a1b26;
+    border-bottom: 1px solid #2a2b3d;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 0;
+  }
+
+  .quickkeys button {
+    flex-shrink: 0;
+    min-width: 44px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #2a2b3d;
+    border-radius: 6px;
+    background: #24283b;
+    color: #a9b1d6;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quickkeys button:active {
+    background: #414868;
+    transform: scale(0.93);
+  }
+
+  .quickkeys button.yes  { border-color: #9ece6a; color: #9ece6a; }
+  .quickkeys button.no   { border-color: #f7768e; color: #f7768e; }
+  .quickkeys button.num  { color: #e0af68; border-color: #3a3b4d; }
+  .quickkeys button.ctrl { color: #bb9af7; border-color: #3a3b4d; font-size: 12px; }
+
   .terminal-frame {
     flex: 1;
     width: 100%;
@@ -156,8 +196,19 @@ const HTML = `<!DOCTYPE html>
     <button class="danger" onclick="action('interrupt')" title="Send Ctrl-C">■ Stop</button>
     <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
   </div>
+  <div class="quickkeys">
+    <button class="yes"  onclick="sendKey('y\n')" title="Yes / 確認">Y</button>
+    <button class="no"   onclick="sendKey('n\n')" title="No / 取消">N</button>
+    <button class="num"  onclick="sendKey('1\n')">1</button>
+    <button class="num"  onclick="sendKey('2\n')">2</button>
+    <button class="num"  onclick="sendKey('3\n')">3</button>
+    <button class="num"  onclick="sendKey('4\n')">4</button>
+    <button class="num"  onclick="sendKey('5\n')">5</button>
+    <button class="ctrl" onclick="sendKey('\r')"   title="Enter">↵</button>
+    <button class="ctrl" onclick="sendKey('\x1b')" title="Escape">Esc</button>
+    <button class="ctrl" onclick="sendKey('\x03')" title="Ctrl+C">^C</button>
+  </div>
   <iframe id="term" class="terminal-frame" src="ttyd/"></iframe>
-  <!-- Fallback: if iframe fails, show direct link -->
   <noscript><p style="padding:20px">JavaScript required. <a href="ttyd/">Open terminal directly</a></p></noscript>
 </div>
 <div class="toast" id="toast"></div>
@@ -168,6 +219,35 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+async function sendKey(key) {
+  try {
+    // Map actual JS char sequences to server-understood tokens
+    const keyMap = {
+      '\r': '\r',
+      '\x1b': '\x1b',
+      '\x03': '\x03',
+    };
+    // If ends with actual newline, convert to \n marker for server
+    let serverKey = key;
+    if (key.length === 2 && key[1] === '\n') {
+      serverKey = key[0] + '\\n';  // e.g. "y\n" → server sees "y\\n"
+    } else if (key === '\r') {
+      serverKey = '\r';
+    } else if (key === '\x1b') {
+      serverKey = '\x1b';
+    } else if (key === '\x03') {
+      serverKey = '\x03';
+    }
+    await fetch('api/key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: serverKey })
+    });
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
 }
 
 async function action(name) {
@@ -256,6 +336,43 @@ const server = http.createServer((req, res) => {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: true, message: '■ Interrupted' }));
           break;
+
+        case 'key': {
+          // Send key to tmux session
+          let body = '';
+          req.on('data', d => body += d);
+          req.on('end', () => {
+            try {
+              const { key } = JSON.parse(body);
+              if (!key || key.length > 20) throw new Error('invalid key');
+              ensureTmux();
+              // Map special keys to tmux key names
+              const keyMap = {
+                '\r': 'Enter',
+                '\n': 'Enter',
+                '\x1b': 'Escape',
+                '\x03': 'C-c',
+                '\x04': 'C-d',
+              };
+              // Check if it ends with \n (like "y\n") — send literal then Enter
+              if (key.endsWith('\\n')) {
+                const literal = key.slice(0, -2);
+                execSync(`tmux send-keys -t ${TMUX_SESSION} -l ${JSON.stringify(literal)}`);
+                execSync(`tmux send-keys -t ${TMUX_SESSION} Enter`);
+              } else if (keyMap[key]) {
+                execSync(`tmux send-keys -t ${TMUX_SESSION} ${keyMap[key]}`);
+              } else {
+                execSync(`tmux send-keys -t ${TMUX_SESSION} -l ${JSON.stringify(key)}`);
+              }
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ ok: true }));
+            } catch(e) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ ok: false, message: e.message }));
+            }
+          });
+          return; // async, don't fall through
+        }
 
         default:
           res.writeHead(404, { 'Content-Type': 'application/json' });
