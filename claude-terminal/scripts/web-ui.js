@@ -38,6 +38,13 @@ const HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script>
+  // Ensure base URL ends with / for relative paths to work with HA ingress
+  if (!window.location.pathname.endsWith('/')) {
+    window.location.pathname += '/';
+  }
+</script>
+<base href="">
 <title>Claude Terminal</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -149,7 +156,7 @@ const HTML = `<!DOCTYPE html>
     <button class="danger" onclick="action('interrupt')" title="Send Ctrl-C">■ Stop</button>
     <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
   </div>
-  <iframe id="term" class="terminal-frame" src="/ttyd/"></iframe>
+  <iframe id="term" class="terminal-frame" src="ttyd/"></iframe>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -168,7 +175,7 @@ async function action(name) {
   txt.textContent = name + '...';
   
   try {
-    const res = await fetch('/api/' + name, { method: 'POST' });
+    const res = await fetch('api/' + name, { method: 'POST' });
     const data = await res.json();
     toast(data.message || 'Done');
     dot.style.background = '#9ece6a';
@@ -281,8 +288,9 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve main page
-  if (req.url === '/' || req.url === '/index.html') {
+  // Serve main page (any path that's not /ttyd/ or /api/)
+  // This handles HA ingress which may add path prefixes
+  if (!req.url.startsWith('/ttyd/') && !req.url.startsWith('/api/')) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(HTML);
     return;
