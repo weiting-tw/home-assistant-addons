@@ -233,11 +233,10 @@ get_claude_launch_command() {
 }
 
 
-# Start main web terminal with tmux session persistence
+# Start web terminal with button toolbar + tmux persistence
 start_web_terminal() {
     local port=7681
-    local tmux_session="claude"
-    bashio::log.info "Starting web terminal on port ${port} with tmux persistence..."
+    bashio::log.info "Starting Claude Terminal Web UI on port ${port}..."
     
     # Log environment information for debugging
     bashio::log.info "Environment variables:"
@@ -247,42 +246,13 @@ start_web_terminal() {
     # Export env vars so tmux sessions inherit them
     export ANTHROPIC_CONFIG_DIR HOME PATH XDG_CONFIG_HOME XDG_CACHE_HOME XDG_STATE_HOME XDG_DATA_HOME ANTHROPIC_HOME
 
-    # Create the tmux attach-or-create script
-    cat > /usr/local/bin/claude-tmux-entry <<'ENTRY_SCRIPT'
-#!/bin/bash
-# Attach to existing tmux session or show session picker
-TMUX_SESSION="claude"
-
-if tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
-    # Session exists — attach to it (resume previous state)
-    exec tmux attach-session -t "$TMUX_SESSION"
-else
-    # No session — create one with the session picker or auto-launch
-    if [ -f /usr/local/bin/claude-session-picker ]; then
-        exec tmux new-session -s "$TMUX_SESSION" /usr/local/bin/claude-session-picker
-    else
-        exec tmux new-session -s "$TMUX_SESSION" claude
-    fi
-fi
-ENTRY_SCRIPT
-    chmod +x /usr/local/bin/claude-tmux-entry
-
     # Log the configuration being used
     local auto_launch_claude
     auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
     
-    # Run ttyd connecting to tmux entry script
-    # Each browser tab/reconnect attaches to the SAME tmux session
-    exec ttyd \
-        --port "${port}" \
-        --interface 0.0.0.0 \
-        --writable \
-        --ping-interval 30 \
-        --client-option enableReconnect=true \
-        --client-option reconnect=10 \
-        --client-option reconnectInterval=5 \
-        /usr/local/bin/claude-tmux-entry
+    # Start the web UI (includes ttyd + button toolbar + tmux session management)
+    exec node /opt/scripts/web-ui.js
 }
 
 # Run health check

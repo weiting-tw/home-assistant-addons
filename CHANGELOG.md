@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [1.9.0] - 2026-02-17
 
 ### Added
+- Fixed toolbar with action buttons (Resume/New/List/Shell/Stop) for mobile use
 - tmux-based session persistence — reconnecting resumes previous Claude session
-- Mobile-friendly session picker with single-key controls (r/n/l/s/q)
-- Auto-resume on reconnect when existing tmux session found
+- Custom Node.js web UI wrapping ttyd with button API
 
 ## [1.8.0] - 2026-02-16
 

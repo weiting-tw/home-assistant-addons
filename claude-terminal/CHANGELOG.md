@@ -3,16 +3,16 @@
 ## 1.9.0 - 2026-02-17
 
 ### 🆕 Features
-- **Session persistence with tmux** — Reconnecting to the terminal resumes your previous Claude session instead of starting a new one
-- **Mobile-friendly session picker** — Single-key controls (r=resume, n=new, l=list, s=shell, q=quit), no need to type numbers + Enter
-- **Auto-resume on reconnect** — When a tmux session exists, connecting automatically attaches to it (no menu needed)
-- **Enter key = Resume** — Just press Enter to quickly resume the last conversation
+- **Fixed toolbar with action buttons** — Top bar with Resume / New / List / Shell / Stop buttons, optimized for mobile
+- **Session persistence with tmux** — Reconnecting resumes your previous Claude session instead of starting a new one
+- **Custom Web UI** — Node.js server with embedded ttyd terminal + button API
+- **One-tap actions** — Buttons send commands directly to tmux session, no typing needed on mobile
 
 ### 🔧 Changes
 - Added `tmux` to container packages
-- ttyd now connects through tmux for persistent sessions
-- Session picker redesigned with simpler key bindings
-- Claude exits return to menu instead of closing the terminal
+- Replaced direct ttyd with Node.js web UI (toolbar + iframe ttyd)
+- ttyd runs on internal port, web UI proxies + adds button toolbar
+- Buttons: ▶ Resume (`claude -c`), ✦ New (`claude`), ☰ List (`claude -r`), ⌨ Shell, ■ Stop (Ctrl-C)
 
 ## 1.8.0 - 2026-02-17
 
