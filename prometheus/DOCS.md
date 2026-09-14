@@ -12,19 +12,35 @@ Samba 或 SSH 編輯。add-on 首次啟動會放一份預設檔進去。
 
 ## 需要驗證的目標
 
-用 `authorization` 區塊。例如 LiteLLM：
+憑證放在 add-on 的 `secrets` 選項，不要寫在 `prometheus.yml` 裡。
+`/addon_configs` 是明文目錄，Samba 與 File editor 都讀得到。
+
+add-on 選項：
+
+```yaml
+secrets:
+  - name: litellm
+    value: <key>
+```
+
+啟動時會寫成 `/data/secrets/litellm`，權限 600。抓取設定這樣引用：
 
 ```yaml
   - job_name: 'litellm'
     metrics_path: /metrics/
     authorization:
       type: Bearer
-      credentials: '<key>'
+      credentials_file: /data/secrets/litellm
     static_configs:
       - targets: ['192.168.31.248:4000']
 ```
 
 `metrics_path` 結尾的斜線不能省，LiteLLM 的 `/metrics` 會回 307 轉址。
+
+改了 `secrets` 要**重新啟動** add-on 才會重寫檔案，`/-/reload` 不夠。
+
+`credentials_file` 指到不存在的檔案時，`promtool check config` 會擋下啟動，
+日誌會指出是哪個 job。
 
 ## job_name 與 Grafana 儀表板
 

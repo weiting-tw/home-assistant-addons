@@ -1,7 +1,7 @@
 ---
 name: "Prometheus"
 description: "Prometheus 時序資料庫，抓取 exporter 指標供 Grafana 查詢"
-version: "3.14.0"
+version: "3.14.1"
 slug: "prometheus"
 init: false
 startup: services
@@ -29,6 +29,13 @@ map:
 options:
   retention_time: "90d"
   log_level: info
+  secrets: []
 schema:
   retention_time: str
   log_level: list(debug|info|warn|error)
+  # 抓取目標需要的憑證。每一筆會寫成 /data/secrets/<name>（權限 600），
+  # 在 prometheus.yml 用 credentials_file 引用。這樣憑證不會落在
+  # /addon_configs 的明文設定檔裡，改動也不必動到那個檔。
+  secrets:
+    - name: str
+      value: password

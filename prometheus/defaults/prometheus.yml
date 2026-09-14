@@ -30,11 +30,12 @@ scrape_configs:
 
   # LiteLLM：花費、token、延遲、失敗率
   # 結尾斜線不能省，/metrics 會回 307 轉址。
-  # credentials 填 LiteLLM 的 master key；這個檔案不進版控。
+  # 憑證來自 add-on 選項 secrets 裡 name=litellm 的那一筆，
+  # 由 add-on 寫成 /data/secrets/litellm。沒設定的話 add-on 會拒絕啟動。
   - job_name: 'litellm'
     metrics_path: /metrics/
     authorization:
       type: Bearer
-      credentials: 'REPLACE_WITH_LITELLM_MASTER_KEY'
+      credentials_file: /data/secrets/litellm
     static_configs:
       - targets: ['192.168.31.248:4000']
