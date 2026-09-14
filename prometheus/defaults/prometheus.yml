@@ -1,0 +1,40 @@
+# Prometheus 抓取設定。改完在 add-on 頁面按「重新啟動」生效，
+# 或呼叫 curl -X POST http://<ha>:9090/-/reload。
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # Prometheus 自己
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ---- Mac mini (192.168.31.248) ----
+  # job_name 必須與 Grafana 儀表板的 job="..." 過濾條件一致，改名會讓面板變空。
+
+  # macOS 系統指標：CPU、記憶體、磁碟、網路、溫度
+  - job_name: 'macmini-system'
+    static_configs:
+      - targets: ['192.168.31.248:9100']
+
+  # 容器指標。cadvisor 在 OrbStack 上讀不到 cgroup，改用走 Docker API 的 exporter。
+  - job_name: 'macmini-containers'
+    static_configs:
+      - targets: ['192.168.31.248:9101']
+
+  # GitLab CI runner：job 數、並行度、對 GitLab 的 API 延遲
+  - job_name: 'gitlab-runner'
+    static_configs:
+      - targets: ['192.168.31.248:9252']
+
+  # LiteLLM：花費、token、延遲、失敗率
+  # 結尾斜線不能省，/metrics 會回 307 轉址。
+  # credentials 填 LiteLLM 的 master key；這個檔案不進版控。
+  - job_name: 'litellm'
+    metrics_path: /metrics/
+    authorization:
+      type: Bearer
+      credentials: 'REPLACE_WITH_LITELLM_MASTER_KEY'
+    static_configs:
+      - targets: ['192.168.31.248:4000']

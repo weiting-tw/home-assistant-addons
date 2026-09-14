@@ -1,0 +1,34 @@
+---
+name: "Prometheus"
+description: "Prometheus 時序資料庫，抓取 exporter 指標供 Grafana 查詢"
+version: "3.14.0"
+slug: "prometheus"
+init: false
+startup: services
+boot: auto
+
+arch:
+  - aarch64
+  - amd64
+  - armv7
+
+url: "https://prometheus.io"
+
+# 不走 ingress：Prometheus 的 UI 需要 --web.external-url 才能在子路徑下運作，
+# 直接開埠比較單純，Grafana 也能用同一個位址當 datasource。
+ports:
+  9090/tcp: 9090
+ports_description:
+  9090/tcp: "Prometheus web UI 與 query API"
+
+# 抓取設定放這裡，首次啟動會產生一份預設檔：
+#   /addon_configs/<slug>/prometheus.yml
+map:
+  - addon_config:rw
+
+options:
+  retention_time: "90d"
+  log_level: info
+schema:
+  retention_time: str
+  log_level: list(debug|info|warn|error)
