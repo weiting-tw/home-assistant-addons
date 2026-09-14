@@ -21,7 +21,9 @@ scrape_configs:
   # 容器指標。cadvisor 在 OrbStack 上讀不到 cgroup，改用走 Docker API 的 exporter。
   - job_name: 'macmini-containers'
     static_configs:
-      - targets: ['192.168.31.248:9101']
+      # 9101 = docker_stats_exporter（CPU、網路、Block IO）
+      # 9102 = cgroup v2 記憶體明細；9101 的 rss 欄位在 cgroup v2 恆為 0
+      - targets: ['192.168.31.248:9101', '192.168.31.248:9102']
 
   # GitLab CI runner：job 數、並行度、對 GitLab 的 API 延遲
   - job_name: 'gitlab-runner'

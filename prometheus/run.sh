@@ -25,6 +25,14 @@ if ! bashio::fs.file_exists "${CONFIG}"; then
     cp /defaults/prometheus.yml "${CONFIG}"
 fi
 
+# supervisor 把 /addon_configs/<slug> 建成 root:root 0755，而 SSH add-on 是以
+# uid 1000(hassio) 登入，改不動這個檔。hassio 屬於 wheel(gid 10)，所以把群組
+# 設成 wheel 並開放群組寫入，File editor、Samba、SSH 三種方式就都能編輯。
+# 檔案裡不含憑證（憑證走 add-on 選項的 secrets），放寬到群組層級不擴大暴露面。
+chgrp 10 /config "${CONFIG}" 2>/dev/null || true
+chmod 0775 /config 2>/dev/null || true
+chmod 0664 "${CONFIG}" 2>/dev/null || true
+
 # 設定寫錯就不要啟動。Prometheus 自己也會退出，但錯誤埋在日誌深處，
 # 先檢查一次把原因講清楚。credentials_file 指到不存在的檔案也會在這裡擋下。
 if ! promtool check config "${CONFIG}"; then

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.14.2
+
+- 啟動時把 `prometheus.yml` 設為 wheel 群組可寫，SSH add-on 才改得動
+- 預設抓取設定加入容器記憶體明細端點 9102
+
 ## 3.14.1
 
 - 新增 `secrets` 選項：憑證寫入 `/data/secrets/<name>`（權限 600），

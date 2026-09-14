@@ -1,7 +1,7 @@
 ---
 name: "Prometheus"
 description: "Prometheus 時序資料庫，抓取 exporter 指標供 Grafana 查詢"
-version: "3.14.1"
+version: "3.14.2"
 slug: "prometheus"
 init: false
 startup: services
