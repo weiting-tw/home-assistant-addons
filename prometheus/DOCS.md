@@ -52,6 +52,11 @@ secrets:
 `retention_time` 預設 90 天。四個 target、約 260 種指標、30 秒間隔，
 一天約 50-100 MB。90 天約 5-9 GB。
 
+## 抓取目標本身的設定
+
+Mac mini 那幾個端點（node_exporter、macmon、容器記憶體）的安裝方式、
+launchd 設定與已知的取樣問題，記在 `docs/macmini-exporters/`。
+
 ## 疑難排解
 
 **add-on 啟不起來** —— 看日誌。啟動前會跑 `promtool check config`，
