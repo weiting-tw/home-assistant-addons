@@ -1,0 +1,36 @@
+---
+name: "InfluxDB"
+description: "InfluxDB 1.8 時序資料庫，接收 Home Assistant 的實體歷史紀錄"
+version: "1.8.10"
+slug: "influxdb"
+init: false
+startup: services
+boot: auto
+
+arch:
+  - aarch64
+  - amd64
+  - armv7
+
+url: "https://docs.influxdata.com/influxdb/v1.8/"
+
+ports:
+  8086/tcp: 8086
+  8088/tcp: 8088
+ports_description:
+  8086/tcp: "HTTP API 與查詢"
+  8088/tcp: "備份／還原 RPC。不用時可留空關閉。"
+
+options:
+  auth: false
+  reporting: false
+  http_bind_address: "0.0.0.0:8086"
+  rpc_bind_address: "0.0.0.0:8088"
+schema:
+  # 現況沒有開驗證，Grafana 與 HA 都以匿名連線。改成 true 之前要先建帳號。
+  auth: bool
+  # 關掉對 InfluxData 的匿名使用回報。
+  reporting: bool
+  http_bind_address: str
+  # 備份／還原用。InfluxDB 預設只綁 127.0.0.1，跨機備份要改成 0.0.0.0。
+  rpc_bind_address: str
