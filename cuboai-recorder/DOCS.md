@@ -24,6 +24,18 @@
 
 ## 開關
 
-`switch_entity` 填一個 `input_boolean`，add-on 每 30 秒讀一次：`on` 就錄，`off` 就停。留空則永遠錄。
+由 Home Assistant 啟停這個 add-on 來控制，不需要權杖也不需要輪詢：
 
-讀不到該 entity 時視為開啟——寧可多錄，也不要因為一次 API 失敗就靜默停錄。
+```yaml
+automation:
+  - alias: CuboAI 錄影開
+    triggers: [{ trigger: state, entity_id: input_boolean.cuboai_recording, to: "on" }]
+    actions: [{ action: hassio.addon_start, data: { addon: 341a84dc_cuboai-recorder } }]
+  - alias: CuboAI 錄影關
+    triggers: [{ trigger: state, entity_id: input_boolean.cuboai_recording, to: "off" }]
+    actions: [{ action: hassio.addon_stop, data: { addon: 341a84dc_cuboai-recorder } }]
+```
+
+`boot: manual`，所以重開機不會無視開關自己開錄；另外掛一條 HA 啟動時的同步自動化即可。
+
+停止時 add-on 會攔 SIGTERM，給 ffmpeg 最多 10 秒把最後一段寫完。
