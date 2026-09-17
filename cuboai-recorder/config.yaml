@@ -1,0 +1,41 @@
+---
+name: "CuboAI Recorder"
+description: "把 CuboAI 的即時串流連續錄成分段 mp4，存到 /media，自動刪除過期檔案"
+version: "1.0.0"
+slug: "cuboai-recorder"
+init: false
+startup: services
+boot: auto
+
+arch:
+  - aarch64
+  - amd64
+  - armv7
+
+url: "https://github.com/weiting-tw/home-assistant-addons"
+
+# 需要讀 input_boolean 的狀態來決定要不要錄，走 Supervisor 代理的 Core API。
+homeassistant_api: true
+
+# 錄影檔寫到 HA 的媒體目錄，媒體瀏覽器可以直接播。
+map:
+  - media:rw
+
+options:
+  # go2rtc 的 HTTP fMP4 端點。CuboAI 整合自己跑一套 go2rtc，預設 API 在 1985。
+  # 不用 RTSP（8535）是因為那個要帳密，而 1985 在 hassio 內網不需認證。
+  source_url: "http://homeassistant:1985/api/stream.mp4?src=cuboai_combined_CB0208E9F6174B10"
+  output_dir: "/media/cuboai"
+  segment_seconds: 600
+  retention_days: 7
+  # 留空＝永遠錄。填 entity_id＝由該開關決定，每 30 秒檢查一次。
+  switch_entity: "input_boolean.cuboai_recording"
+  log_level: info
+
+schema:
+  source_url: str
+  output_dir: str
+  segment_seconds: int(60,3600)
+  retention_days: int(1,90)
+  switch_entity: str?
+  log_level: list(debug|info|warn|error)
